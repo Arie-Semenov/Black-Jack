@@ -1,0 +1,27 @@
+nav {
+    position: fixed;
+    width: 100vw;
+    height: 3em;
+    padding: .5em;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: bisque;
+}
+
+nav > h1 {
+    flex-grow: 1;
+    font-size: 1.3em;
+}
+
+nav > button {
+    width: 5em;
+    height: 2em;
+    padding: .3em;
+    margin-right: .2em;
+    display: inline-block;
+    border-radius: 2em;
+    font-size: 18px;
+}
