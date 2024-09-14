@@ -39,9 +39,11 @@ func (g *Game) initDeck() {
 	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
 
 	g.Deck = []Card{}
-	for _, suit := range suits {
-		for _, value := range values {
-			g.Deck = append(g.Deck, Card{Value: value, Suit: suit})
+	for i := 0; i < 8; i++ { // Create 8 decks
+		for _, suit := range suits {
+			for _, value := range values {
+				g.Deck = append(g.Deck, Card{Value: value, Suit: suit})
+			}
 		}
 	}
 	rand.Seed(time.Now().UnixNano())
@@ -82,8 +84,8 @@ func (g *Game) PlayerStand() {
 
 func (g *Game) drawCard() Card {
 	if len(g.Deck) == 0 {
-		log.Println("Deck is empty, cannot draw a card.")
-		return Card{} // or handle this case as needed
+		log.Println("Deck is empty, reshuffling...")
+		g.initDeck() // Reshuffle the deck
 	}
 	card := g.Deck[0]
 	g.Deck = g.Deck[1:]

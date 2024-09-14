@@ -22,6 +22,7 @@ const GameBoard = ({ balance, setBalance }) => {
     useEffect(() => {
         if (isBusted) {
             setGameOver(true);
+            setMessage('You busted!');
         }
     }, [isBusted]);
 
@@ -53,15 +54,8 @@ const GameBoard = ({ balance, setBalance }) => {
                     setPlayerHand(data.player.split(', ').map(card => parseCard(card)));
                 }
                 if (data.result) {
+                    // Only update busted status, don't handle outcome
                     setIsBusted(data.result.includes('busts'));
-                }
-                if (data.outcome) {
-                    if (data.outcome === 'win') {
-                        setBalance(balance + bet * 2); // Double the bet amount
-                    } else if (data.outcome === 'draw') {
-                        setBalance(balance + bet); // Return bet amount
-                    }
-                    setGameOver(true); // Set gameOver based on outcome
                 }
                 setMessage(data.result || ''); // Set message if any
             })
@@ -80,10 +74,15 @@ const GameBoard = ({ balance, setBalance }) => {
                     setMessage(data.result); // Set message if any
                 }
                 if (data.outcome) {
+                    // Handle outcome and update balance based on game result
                     if (data.outcome === 'win') {
                         setBalance(balance + bet * 2); // Double the bet amount
+                        setMessage('You win!');
                     } else if (data.outcome === 'draw') {
                         setBalance(balance + bet); // Return bet amount
+                        setMessage('It\'s a draw!');
+                    } else if (data.outcome === 'lose') {
+                        setMessage('You lose!');
                     }
                     setGameOver(true); // Set gameOver based on outcome
                 }
@@ -144,8 +143,23 @@ const GameBoard = ({ balance, setBalance }) => {
         return <div>Error: playerHand or dealerHand is not an array.</div>;
     }
 
+    const getGameStatus = () => {
+        if (gameOver) {
+            return 'Game Over';
+        }
+        if (gameStarted) {
+            return 'Game in Progress';
+        }
+        if (hasBet) {
+            return 'Waiting for Actions';
+        }
+        return 'Waiting for Bets';
+    };
+
     return (
         <div className="game-board">
+            <h1>{getGameStatus()}</h1>
+
             <h2>Player Hand</h2>
             <div className="hand">
                 {playerHand.map((card, index) => (

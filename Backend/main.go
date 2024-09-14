@@ -67,12 +67,21 @@ func startGame(w http.ResponseWriter, r *http.Request) {
 
 func hit(w http.ResponseWriter, r *http.Request) {
 	game.PlayerHit()
-	result, outcome := game.CheckOutcome()
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"player":  handToString(game.Player.Hand),
-		"result":  result,
-		"outcome": outcome,
-	})
+	playerScore := game.calculateHandValue(game.Player.Hand)
+	if playerScore > 21 {
+		// Player busts after hit
+		result, outcome := game.CheckOutcome()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"player":  handToString(game.Player.Hand),
+			"result":  result,
+			"outcome": outcome,
+		})
+	} else {
+		// Still in the game
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"player": handToString(game.Player.Hand),
+		})
+	}
 }
 
 func stand(w http.ResponseWriter, r *http.Request) {
