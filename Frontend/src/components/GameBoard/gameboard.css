@@ -6,9 +6,12 @@
     padding: 20px;
     padding-top: 5em;
     border-radius: 10px;
-    width: 80%;
+    width: 100%;
     margin: auto;
+    box-sizing: border-box;
+    height: 100vh;
 }
+
 
 .hand {
     display: flex;

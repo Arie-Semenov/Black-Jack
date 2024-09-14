@@ -1,0 +1,55 @@
+.balance-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px;
+    margin: auto;
+    text-align: center;
+    box-sizing: border-box;
+    position: fixed;
+    top: 3.5em;
+    right: 0;
+  }
+  
+  .balance-container h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .balance-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .balance-controls input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+
+  .balance-controls button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .balance-controls button:hover {
+    background-color: #0056b3;
+  }
+  
+  .balance-controls button:disabled {
+    background-color: #d6d6d6;
+    cursor: not-allowed;
+  }
+  

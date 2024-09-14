@@ -7,6 +7,7 @@ const App = () => {
   // Define playerHand and dealerHand as state variables
   const [playerHand, setPlayerHand] = useState([]);
   const [dealerHand, setDealerHand] = useState([]);
+  const [ balance , setBalance] = useState(0);
 
   // Function to start a new game (replace with your logic or API call)
   const startGame = async () => {
@@ -22,7 +23,7 @@ const App = () => {
 
   return (
     <div className="App">
-      <NavBar />
+      <NavBar balance={balance} setBalance={setBalance} />
       <h1>Blackjack Game</h1>
       <GameBoard playerHand={playerHand} dealerHand={dealerHand} />
     </div>

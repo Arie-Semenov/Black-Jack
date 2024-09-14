@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -23,6 +24,7 @@ type Game struct {
 	Deck   []Card
 	Player Player
 	Dealer Dealer
+	mu     sync.Mutex // Mutex for thread-safe operations
 }
 
 func NewGame() *Game {
@@ -46,6 +48,9 @@ func (g *Game) initDeck() {
 }
 
 func (g *Game) StartGame() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	// Reset player and dealer hands
 	g.Player.Hand = []Card{}
 	g.Dealer.Hand = []Card{}
@@ -56,10 +61,16 @@ func (g *Game) StartGame() {
 }
 
 func (g *Game) PlayerHit() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	g.Player.Hand = append(g.Player.Hand, g.drawCard())
 }
 
 func (g *Game) PlayerStand() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	// Dealer draws cards based on simple blackjack rules
 	for g.calculateHandValue(g.Dealer.Hand) < 17 {
 		g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard())
@@ -97,6 +108,9 @@ func (g *Game) calculateHandValue(hand []Card) int {
 }
 
 func (g *Game) CheckOutcome() string {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	playerScore := g.calculateHandValue(g.Player.Hand)
 	dealerScore := g.calculateHandValue(g.Dealer.Hand)
 
