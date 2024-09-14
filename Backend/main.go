@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 )
 
 var game *Game
@@ -12,14 +13,33 @@ func main() {
 	// Initialize the game
 	game = NewGame()
 
-	http.HandleFunc("/start-game", withCORS(startGame))
-	http.HandleFunc("/hit", withCORS(hit))
-	http.HandleFunc("/stand", withCORS(stand))
-	http.HandleFunc("/player-hand", withCORS(getPlayerHand))
+	// Create a new server with timeout settings
+	srv := &http.Server{
+		Addr:         ":8080",
+		Handler:      http.HandlerFunc(handleRequests),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 
 	log.Println("Server is starting on port 8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start: ", err)
+	}
+}
+
+func handleRequests(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/start-game":
+		withCORS(startGame).ServeHTTP(w, r)
+	case "/hit":
+		withCORS(hit).ServeHTTP(w, r)
+	case "/stand":
+		withCORS(stand).ServeHTTP(w, r)
+	case "/player-hand":
+		withCORS(getPlayerHand).ServeHTTP(w, r)
+	default:
+		http.NotFound(w, r)
 	}
 }
 
@@ -47,19 +67,21 @@ func startGame(w http.ResponseWriter, r *http.Request) {
 
 func hit(w http.ResponseWriter, r *http.Request) {
 	game.PlayerHit()
-	result := game.CheckOutcome()
+	result, outcome := game.CheckOutcome()
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"player": handToString(game.Player.Hand),
-		"result": result,
+		"player":  handToString(game.Player.Hand),
+		"result":  result,
+		"outcome": outcome,
 	})
 }
 
 func stand(w http.ResponseWriter, r *http.Request) {
 	game.PlayerStand()
-	result := game.CheckOutcome()
+	result, outcome := game.CheckOutcome()
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"dealer": handToString(game.Dealer.Hand),
-		"result": result,
+		"dealer":  handToString(game.Dealer.Hand),
+		"result":  result,
+		"outcome": outcome,
 	})
 }
 

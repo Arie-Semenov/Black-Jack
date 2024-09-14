@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -58,6 +59,8 @@ func (g *Game) StartGame() {
 	// Deal two cards each
 	g.Player.Hand = append(g.Player.Hand, g.drawCard(), g.drawCard())
 	g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard(), g.drawCard())
+
+	log.Printf("Deck size after dealing: %d", len(g.Deck))
 }
 
 func (g *Game) PlayerHit() {
@@ -78,6 +81,10 @@ func (g *Game) PlayerStand() {
 }
 
 func (g *Game) drawCard() Card {
+	if len(g.Deck) == 0 {
+		log.Println("Deck is empty, cannot draw a card.")
+		return Card{} // or handle this case as needed
+	}
 	card := g.Deck[0]
 	g.Deck = g.Deck[1:]
 	return card
@@ -107,27 +114,24 @@ func (g *Game) calculateHandValue(hand []Card) int {
 	return value
 }
 
-func (g *Game) CheckOutcome() string {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
+func (g *Game) CheckOutcome() (string, string) {
 	playerScore := g.calculateHandValue(g.Player.Hand)
 	dealerScore := g.calculateHandValue(g.Dealer.Hand)
 
 	if playerScore > 21 {
-		return "Player busts, dealer wins!"
+		return "Player busts, dealer wins!", "loss"
 	} else if dealerScore > 21 {
-		return "Dealer busts, player wins!"
+		return "Dealer busts, player wins!", "win"
 	} else if playerScore == 21 {
-		return "Blackjack! Player wins!"
+		return "Blackjack! Player wins!", "win"
 	} else if dealerScore == 21 {
-		return "Blackjack! Dealer wins!"
+		return "Blackjack! Dealer wins!", "loss"
 	} else if len(g.Player.Hand) >= 5 && playerScore <= 21 {
-		return "Player wins with 5 cards!"
+		return "Player wins with 5 cards!", "win"
 	} else if playerScore > dealerScore {
-		return "Player wins!"
+		return "Player wins!", "win"
 	} else if dealerScore > playerScore {
-		return "Dealer wins!"
+		return "Dealer wins!", "loss"
 	}
-	return "It's a draw!"
+	return "It's a draw!", "draw"
 }

@@ -25,7 +25,7 @@ const App = () => {
     <div className="App">
       <NavBar balance={balance} setBalance={setBalance} />
       <h1>Blackjack Game</h1>
-      <GameBoard playerHand={playerHand} dealerHand={dealerHand} />
+      <GameBoard balance={balance} setBalance={setBalance} playerHand={playerHand} dealerHand={dealerHand} />
     </div>
   );
 };
