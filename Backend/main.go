@@ -100,8 +100,16 @@ func stand(w http.ResponseWriter, r *http.Request) {
 }
 
 func doubleDown(w http.ResponseWriter, r *http.Request) {
-	// For simplicity, default to first hand; modify for more complex logic
-	game.DoubleDown(0)
+	var bet struct {
+		Amount int `json:"amount"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&bet); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Pass the bet amount to DoubleDown
+	game.DoubleDown(0, bet.Amount)
 	playerScore := game.calculateHandValue(game.Player.Hands[0])
 	if playerScore > 21 {
 		// Player busts after double down

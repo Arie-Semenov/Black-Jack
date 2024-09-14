@@ -88,13 +88,15 @@ func (g *Game) PlayerStand() {
 	}
 }
 
-func (g *Game) DoubleDown(handIndex int) {
+func (g *Game) DoubleDown(handIndex int, bet int) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	if handIndex < len(g.Player.Hands) {
+		// Draw a card for the player
 		g.Player.Hands[handIndex] = append(g.Player.Hands[handIndex], g.drawCard())
-		g.Player.Bet *= 2 // Double the bet
+		// Double the bet
+		g.Player.Bet += bet
 		// Player must stand after doubling down
 	}
 }

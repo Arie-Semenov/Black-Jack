@@ -13,6 +13,8 @@ const GameBoard = ({ balance, setBalance }) => {
     const [gameStarted, setGameStarted] = useState(false);
     const [gameOver, setGameOver] = useState(false);
     const [canSplit, setCanSplit] = useState(false);
+    const [winnings, setWinnings] = useState(0);
+
 
     useEffect(() => {
         if (gameStarted) {
@@ -87,46 +89,98 @@ const GameBoard = ({ balance, setBalance }) => {
                     setMessage(data.result); // Set message if any
                 }
                 if (data.outcome) {
+                    let wonAmount = 0;
                     if (data.outcome === 'win') {
-                        setBalance(balance + bet * 2); // Double the bet amount
-                        setMessage('You win!');
+                        wonAmount = bet * 2;
+                        setBalance(balance + wonAmount); // Double the bet amount
+                        setMessage(`You win! You won $${wonAmount}`);
                     } else if (data.outcome === 'draw') {
-                        setBalance(balance + bet); // Return bet amount
-                        setMessage('It\'s a draw!');
+                        wonAmount = bet; // Return the bet amount
+                        setBalance(balance + wonAmount);
+                        setMessage(`It's a draw! Your bet of $${bet} has been returned.`);
                     } else if (data.outcome === 'lose') {
                         setMessage('You lose!');
                     }
+                    setWinnings(wonAmount); // Set winnings for display
                     setGameOver(true); // Set gameOver based on outcome
                 }
             })
             .catch(error => console.error('Error handling stand:', error));
     };
+    
 
     const handleDoubleDown = () => {
-        fetch('http://localhost:8080/double-down', { method: 'POST' })
+        if (balance >= bet) {
+            fetch('http://localhost:8080/double-down', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handIndex: 0 }) // Assuming single hand for simplicity
+            })
             .then(response => response.json())
             .then(data => {
                 if (data.player) {
                     setPlayerHand(data.player.split(', ').map(card => parseCard(card)));
                 }
-                if (data.result) {
-                    setIsBusted(data.result.includes('busts'));
-                }
-                if (data.outcome) {
-                    if (data.outcome === 'win') {
-                        setBalance(balance + bet * 4); // Double the bet amount after doubling down
-                        setMessage('You win!');
-                    } else if (data.outcome === 'draw') {
-                        setBalance(balance + bet * 2); // Return doubled bet amount
-                        setMessage('It\'s a draw!');
-                    } else if (data.outcome === 'lose') {
-                        setMessage('You lose!');
-                    }
-                    setGameOver(true); // Set gameOver based on outcome
-                }
+                setBalance(prevBalance => prevBalance - bet); // Deduct the bet amount again for doubling down
+                setBet(prevBet => prevBet * 2); // Double the bet
+    
+                // After doubling down, the player stands and lets the dealer play
+                fetch('http://localhost:8080/stand', { method: 'POST' }) // Let dealer play
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.dealer) {
+                            setDealerHand(data.dealer.split(', ').map(card => parseCard(card)));
+                        }
+                        let wonAmount = 0;
+                        if (data.outcome === 'win') {
+                            wonAmount = bet * 4; // The bet is already doubled, so the winnings are 2x the doubled bet
+                            setBalance(prevBalance => prevBalance + wonAmount); // Add the winnings to the balance
+                            setMessage(`You win! You won $${wonAmount}`);
+                        } else if (data.outcome === 'draw') {
+                            wonAmount = bet; // Return the doubled bet amount
+                            setBalance(prevBalance => prevBalance + wonAmount); // Return the full doubled bet amount
+                            setMessage(`It's a draw! You got your bet of $${wonAmount} back.`);
+                        } else if (data.outcome === 'lose') {
+                            setMessage('You lose!');
+                        }
+                        setWinnings(wonAmount); // Set winnings for display
+                        setGameOver(true);
+                    })
+                    .catch(error => console.error('Error handling stand after double down:', error));
             })
             .catch(error => console.error('Error handling double down:', error));
+        } else {
+            console.error('Insufficient balance for double down');
+        }
     };
+    
+    
+    
+    
+    
+    const checkGameOutcome = () => {
+        fetch('http://localhost:8080/check-outcome', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.result) {
+                setMessage(data.result); // Set message if any
+            }
+            if (data.outcome) {
+                if (data.outcome === 'win') {
+                    setBalance(prevBalance => prevBalance + bet); // Double the bet amount
+                    setMessage('You win!');
+                } else if (data.outcome === 'draw') {
+                    setBalance(prevBalance => prevBalance + bet); // Return bet amount
+                    setMessage('It\'s a draw!');
+                } else if (data.outcome === 'lose') {
+                    setMessage('You lose!');
+                }
+                setGameOver(true); // Set gameOver based on outcome
+            }
+        })
+        .catch(error => console.error('Error checking game outcome:', error));
+    };
+    
 
     const handleSplit = () => {
         fetch('http://localhost:8080/split', { method: 'POST' })
@@ -246,6 +300,10 @@ const GameBoard = ({ balance, setBalance }) => {
                 />
                 <button onClick={handlePlaceBetAndStartNewGame} disabled={hasBet && !gameOver}>Place Bet</button>
                 {bet > 0 && <div>Current Bet: ${bet}</div>}
+                <div className="winnings">
+                    {winnings > 0 && <div>You won: ${winnings}</div>}
+                </div>
+
             </div>
         </div>
     );
