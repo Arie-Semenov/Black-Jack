@@ -14,7 +14,8 @@ type Card struct {
 }
 
 type Player struct {
-	Hand []Card
+	Hands [][]Card // Multiple hands for split scenarios
+	Bet   int      // Player's current bet amount
 }
 
 type Dealer struct {
@@ -55,21 +56,26 @@ func (g *Game) StartGame() {
 	defer g.mu.Unlock()
 
 	// Reset player and dealer hands
-	g.Player.Hand = []Card{}
+	g.Player.Hands = [][]Card{{}} // Start with one hand
+	g.Player.Bet = 0
 	g.Dealer.Hand = []Card{}
 
 	// Deal two cards each
-	g.Player.Hand = append(g.Player.Hand, g.drawCard(), g.drawCard())
-	g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard(), g.drawCard())
+	for i := 0; i < 2; i++ {
+		g.Player.Hands[0] = append(g.Player.Hands[0], g.drawCard())
+		g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard())
+	}
 
 	log.Printf("Deck size after dealing: %d", len(g.Deck))
 }
 
-func (g *Game) PlayerHit() {
+func (g *Game) PlayerHit(handIndex int) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.Player.Hand = append(g.Player.Hand, g.drawCard())
+	if handIndex < len(g.Player.Hands) {
+		g.Player.Hands[handIndex] = append(g.Player.Hands[handIndex], g.drawCard())
+	}
 }
 
 func (g *Game) PlayerStand() {
@@ -79,6 +85,31 @@ func (g *Game) PlayerStand() {
 	// Dealer draws cards based on simple blackjack rules
 	for g.calculateHandValue(g.Dealer.Hand) < 17 {
 		g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard())
+	}
+}
+
+func (g *Game) DoubleDown(handIndex int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if handIndex < len(g.Player.Hands) {
+		g.Player.Hands[handIndex] = append(g.Player.Hands[handIndex], g.drawCard())
+		g.Player.Bet *= 2 // Double the bet
+		// Player must stand after doubling down
+	}
+}
+
+func (g *Game) Split(handIndex int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if handIndex < len(g.Player.Hands) && len(g.Player.Hands[handIndex]) == 2 && g.Player.Hands[handIndex][0].Value == g.Player.Hands[handIndex][1].Value {
+		card1 := g.Player.Hands[handIndex][0]
+		card2 := g.Player.Hands[handIndex][1]
+
+		// Remove the two cards from the hand and create two new hands
+		g.Player.Hands = append(g.Player.Hands, []Card{card1, g.drawCard()})
+		g.Player.Hands[handIndex] = []Card{card2, g.drawCard()}
 	}
 }
 
@@ -117,23 +148,38 @@ func (g *Game) calculateHandValue(hand []Card) int {
 }
 
 func (g *Game) CheckOutcome() (string, string) {
-	playerScore := g.calculateHandValue(g.Player.Hand)
-	dealerScore := g.calculateHandValue(g.Dealer.Hand)
+	// Need to handle multiple hands
+	var result string
+	var outcome string
+	for _, hand := range g.Player.Hands {
+		playerScore := g.calculateHandValue(hand)
+		dealerScore := g.calculateHandValue(g.Dealer.Hand)
 
-	if playerScore > 21 {
-		return "Player busts, dealer wins!", "loss"
-	} else if dealerScore > 21 {
-		return "Dealer busts, player wins!", "win"
-	} else if playerScore == 21 {
-		return "Blackjack! Player wins!", "win"
-	} else if dealerScore == 21 {
-		return "Blackjack! Dealer wins!", "loss"
-	} else if len(g.Player.Hand) >= 5 && playerScore <= 21 {
-		return "Player wins with 5 cards!", "win"
-	} else if playerScore > dealerScore {
-		return "Player wins!", "win"
-	} else if dealerScore > playerScore {
-		return "Dealer wins!", "loss"
+		if playerScore > 21 {
+			result = "Player busts, dealer wins!"
+			outcome = "loss"
+		} else if dealerScore > 21 {
+			result = "Dealer busts, player wins!"
+			outcome = "win"
+		} else if playerScore == 21 {
+			result = "Blackjack! Player wins!"
+			outcome = "win"
+		} else if dealerScore == 21 {
+			result = "Blackjack! Dealer wins!"
+			outcome = "loss"
+		} else if len(hand) >= 5 && playerScore <= 21 {
+			result = "Player wins with 5 cards!"
+			outcome = "win"
+		} else if playerScore > dealerScore {
+			result = "Player wins!"
+			outcome = "win"
+		} else if dealerScore > playerScore {
+			result = "Dealer wins!"
+			outcome = "loss"
+		} else {
+			result = "It's a draw!"
+			outcome = "draw"
+		}
 	}
-	return "It's a draw!", "draw"
+	return result, outcome
 }

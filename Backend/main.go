@@ -36,6 +36,10 @@ func handleRequests(w http.ResponseWriter, r *http.Request) {
 		withCORS(hit).ServeHTTP(w, r)
 	case "/stand":
 		withCORS(stand).ServeHTTP(w, r)
+	case "/double-down":
+		withCORS(doubleDown).ServeHTTP(w, r)
+	case "/split":
+		withCORS(split).ServeHTTP(w, r)
 	case "/player-hand":
 		withCORS(getPlayerHand).ServeHTTP(w, r)
 	default:
@@ -60,26 +64,27 @@ func startGame(w http.ResponseWriter, r *http.Request) {
 	game.StartGame()
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Game started. Cards dealt.",
-		"player":  handToString(game.Player.Hand),
+		"player":  handToString(game.Player.Hands[0]),
 		"dealer":  handToString(game.Dealer.Hand[:1]), // Only show one dealer card
 	})
 }
 
 func hit(w http.ResponseWriter, r *http.Request) {
-	game.PlayerHit()
-	playerScore := game.calculateHandValue(game.Player.Hand)
+	// For simplicity, default to first hand; modify for more complex logic
+	game.PlayerHit(0)
+	playerScore := game.calculateHandValue(game.Player.Hands[0])
 	if playerScore > 21 {
 		// Player busts after hit
 		result, outcome := game.CheckOutcome()
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"player":  handToString(game.Player.Hand),
+			"player":  handToString(game.Player.Hands[0]),
 			"result":  result,
 			"outcome": outcome,
 		})
 	} else {
 		// Still in the game
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"player": handToString(game.Player.Hand),
+			"player": handToString(game.Player.Hands[0]),
 		})
 	}
 }
@@ -94,9 +99,37 @@ func stand(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func doubleDown(w http.ResponseWriter, r *http.Request) {
+	// For simplicity, default to first hand; modify for more complex logic
+	game.DoubleDown(0)
+	playerScore := game.calculateHandValue(game.Player.Hands[0])
+	if playerScore > 21 {
+		// Player busts after double down
+		result, outcome := game.CheckOutcome()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"player":  handToString(game.Player.Hands[0]),
+			"result":  result,
+			"outcome": outcome,
+		})
+	} else {
+		// Still in the game
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"player": handToString(game.Player.Hands[0]),
+		})
+	}
+}
+
+func split(w http.ResponseWriter, r *http.Request) {
+	// For simplicity, default to first hand; modify for more complex logic
+	game.Split(0)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"player": handToString(game.Player.Hands[0]), // Update with split hands
+	})
+}
+
 func getPlayerHand(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string][]Card{
-		"hand": game.Player.Hand,
+		"hand": game.Player.Hands[0], // Update with current hand
 	})
 }
 

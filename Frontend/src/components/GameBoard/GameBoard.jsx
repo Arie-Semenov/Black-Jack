@@ -12,6 +12,7 @@ const GameBoard = ({ balance, setBalance }) => {
     const [hasBet, setHasBet] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameOver, setGameOver] = useState(false);
+    const [canSplit, setCanSplit] = useState(false);
 
     useEffect(() => {
         if (gameStarted) {
@@ -26,6 +27,10 @@ const GameBoard = ({ balance, setBalance }) => {
         }
     }, [isBusted]);
 
+    useEffect(() => {
+        checkIfCanSplit();
+    }, [playerHand]);
+
     const startNewGame = () => {
         fetch('http://localhost:8080/start-game', { method: 'POST' })
             .then(response => response.json())
@@ -37,6 +42,7 @@ const GameBoard = ({ balance, setBalance }) => {
                 setGameOver(false);
                 setGameStarted(false);
                 setHasBet(true); // Ensure bet is set to true for new game
+                checkIfCanSplit();
             })
             .catch(error => console.error('Error starting new game:', error));
     };
@@ -44,6 +50,14 @@ const GameBoard = ({ balance, setBalance }) => {
     const parseCard = (cardStr) => {
         const [value, suit] = cardStr.split(' of ');
         return { Value: value, Suit: suit };
+    };
+
+    const checkIfCanSplit = () => {
+        if (playerHand.length === 2 && playerHand[0].Value === playerHand[1].Value) {
+            setCanSplit(true);
+        } else {
+            setCanSplit(false);
+        }
     };
 
     const handleHit = () => {
@@ -54,7 +68,6 @@ const GameBoard = ({ balance, setBalance }) => {
                     setPlayerHand(data.player.split(', ').map(card => parseCard(card)));
                 }
                 if (data.result) {
-                    // Only update busted status, don't handle outcome
                     setIsBusted(data.result.includes('busts'));
                 }
                 setMessage(data.result || ''); // Set message if any
@@ -74,7 +87,6 @@ const GameBoard = ({ balance, setBalance }) => {
                     setMessage(data.result); // Set message if any
                 }
                 if (data.outcome) {
-                    // Handle outcome and update balance based on game result
                     if (data.outcome === 'win') {
                         setBalance(balance + bet * 2); // Double the bet amount
                         setMessage('You win!');
@@ -88,6 +100,46 @@ const GameBoard = ({ balance, setBalance }) => {
                 }
             })
             .catch(error => console.error('Error handling stand:', error));
+    };
+
+    const handleDoubleDown = () => {
+        fetch('http://localhost:8080/double-down', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.player) {
+                    setPlayerHand(data.player.split(', ').map(card => parseCard(card)));
+                }
+                if (data.result) {
+                    setIsBusted(data.result.includes('busts'));
+                }
+                if (data.outcome) {
+                    if (data.outcome === 'win') {
+                        setBalance(balance + bet * 4); // Double the bet amount after doubling down
+                        setMessage('You win!');
+                    } else if (data.outcome === 'draw') {
+                        setBalance(balance + bet * 2); // Return doubled bet amount
+                        setMessage('It\'s a draw!');
+                    } else if (data.outcome === 'lose') {
+                        setMessage('You lose!');
+                    }
+                    setGameOver(true); // Set gameOver based on outcome
+                }
+            })
+            .catch(error => console.error('Error handling double down:', error));
+    };
+
+    const handleSplit = () => {
+        fetch('http://localhost:8080/split', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                // Assuming you need to handle multiple hands in state
+                // Update playerHand to handle multiple hands after split
+                // Modify this logic based on how you handle splits in backend
+                setPlayerHand(data.player ? data.player.split(', ').map(card => parseCard(card)) : []);
+                setMessage(data.result || '');
+                setCanSplit(false); // Reset split availability
+            })
+            .catch(error => console.error('Error handling split:', error));
     };
 
     const handlePlaceBetAndStartNewGame = () => {
@@ -179,6 +231,8 @@ const GameBoard = ({ balance, setBalance }) => {
             <div className="controls">
                 <button onClick={handleHit} disabled={isBusted || !hasBet || gameOver}>Hit</button>
                 <button onClick={handleStand} disabled={isBusted || !hasBet || gameOver}>Stand</button>
+                <button onClick={handleDoubleDown} disabled={isBusted || !hasBet || gameOver}>Double Down</button>
+                {canSplit && <button onClick={handleSplit} disabled={isBusted || !hasBet || gameOver}>Split</button>}
             </div>
 
             <div className="message">{message}</div>
