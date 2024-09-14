@@ -15,7 +15,6 @@ const GameBoard = ({ balance, setBalance }) => {
     const [canSplit, setCanSplit] = useState(false);
     const [winnings, setWinnings] = useState(0);
 
-
     useEffect(() => {
         if (gameStarted) {
             startNewGame();
@@ -107,7 +106,6 @@ const GameBoard = ({ balance, setBalance }) => {
             })
             .catch(error => console.error('Error handling stand:', error));
     };
-    
 
     const handleDoubleDown = () => {
         if (balance >= bet) {
@@ -153,42 +151,12 @@ const GameBoard = ({ balance, setBalance }) => {
             console.error('Insufficient balance for double down');
         }
     };
-    
-    
-    
-    
-    
-    const checkGameOutcome = () => {
-        fetch('http://localhost:8080/check-outcome', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.result) {
-                setMessage(data.result); // Set message if any
-            }
-            if (data.outcome) {
-                if (data.outcome === 'win') {
-                    setBalance(prevBalance => prevBalance + bet); // Double the bet amount
-                    setMessage('You win!');
-                } else if (data.outcome === 'draw') {
-                    setBalance(prevBalance => prevBalance + bet); // Return bet amount
-                    setMessage('It\'s a draw!');
-                } else if (data.outcome === 'lose') {
-                    setMessage('You lose!');
-                }
-                setGameOver(true); // Set gameOver based on outcome
-            }
-        })
-        .catch(error => console.error('Error checking game outcome:', error));
-    };
-    
 
     const handleSplit = () => {
         fetch('http://localhost:8080/split', { method: 'POST' })
             .then(response => response.json())
             .then(data => {
-                // Assuming you need to handle multiple hands in state
                 // Update playerHand to handle multiple hands after split
-                // Modify this logic based on how you handle splits in backend
                 setPlayerHand(data.player ? data.player.split(', ').map(card => parseCard(card)) : []);
                 setMessage(data.result || '');
                 setCanSplit(false); // Reset split availability
@@ -303,7 +271,6 @@ const GameBoard = ({ balance, setBalance }) => {
                 <div className="winnings">
                     {winnings > 0 && <div>You won: ${winnings}</div>}
                 </div>
-
             </div>
         </div>
     );

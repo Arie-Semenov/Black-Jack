@@ -1,55 +1,45 @@
+/* balance.css */
 .balance-container {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 300px;
-    margin: auto;
-    text-align: center;
-    box-sizing: border-box;
-    position: fixed;
-    top: 3.5em;
-    right: 0;
-  }
-  
-  .balance-container h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #333;
-  }
-  
-  .balance-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .balance-controls input {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #007bff;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
+  position: absolute;
+  top: 60px; /* Adjust this value to align with the nav bar height */
+  right: 0;
+  background-color: #2e8b57; /* Matches the nav bar dropdown color */
+  color: #fff;
+  border-radius: 8px;
+  padding: 1em;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 2000; /* Ensure it appears above other content */
+  min-width: 200px; /* Adjust as needed */
+  text-align: center;
+}
 
-  .balance-controls button {
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #007bff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .balance-controls button:hover {
-    background-color: #0056b3;
-  }
-  
-  .balance-controls button:disabled {
-    background-color: #d6d6d6;
-    cursor: not-allowed;
-  }
-  
+.balance-controls {
+  margin-top: 1em;
+}
+
+.balance-controls input {
+  width: 80%;
+  padding: 0.5em;
+  border: none;
+  border-radius: 5px;
+  margin-bottom: 0.5em;
+}
+
+.balance-controls button {
+  background-color: #fff;
+  color: #2e8b57; /* Matches the nav bar color */
+  border: none;
+  border-radius: 5px;
+  padding: 0.5em 1em;
+  margin: 0.5em;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.balance-controls button:hover {
+  background-color: #ddd;
+}
+
+.balance-controls button:active {
+  background-color: #ccc;
+}

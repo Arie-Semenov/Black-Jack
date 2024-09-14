@@ -1,23 +1,31 @@
 .game-board {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Roboto', sans-serif;
     text-align: center;
-    background-color: #2e8b57;
-    color: white;
+    background: #333; /* Dark background for a casino feel */
+    color: #f1f1f1; /* Light text color for contrast */
     padding: 20px;
-    padding-top: 5em;
-    border-radius: 10px;
+    border-radius: 20px;
     width: 100%;
-    margin: auto;
-    box-sizing: border-box;
     height: 100vh;
+    box-sizing: border-box;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); /* Deep shadow for a dramatic effect */
 }
-
 
 .hand {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent background */
+    border: 2px solid #fff; /* White border */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
 }
 
 .controls {
@@ -25,19 +33,21 @@
 }
 
 button {
-    background-color: #f0f0f0;
-    color: #333;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
+    background-color: #e5a100; /* Gold color for buttons */
+    color: #fff;
+    border: 2px solid #b87c00; /* Darker gold border */
+    border-radius: 12px;
+    padding: 12px 24px;
     font-size: 16px;
     cursor: pointer;
-    margin: 0 5px;
-    transition: background-color 0.3s;
+    margin: 10px;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
 }
 
 button:hover {
-    background-color: #ddd;
+    background-color: #b87c00; /* Darker gold on hover */
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
 .betting {
@@ -46,15 +56,17 @@ button:hover {
 
 input {
     padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-right: 10px;
+    border-radius: 8px;
+    border: 2px solid #e5a100;
+    margin-right: 15px;
     font-size: 16px;
+    background-color: #fff;
+    color: #000;
 }
 
 .message {
     margin-top: 20px;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
-    color: #333;
+    color: #ffcc00; /* Bright gold for messages */
 }
