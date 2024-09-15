@@ -9,6 +9,10 @@ const suitSymbols = {
 };
 
 const Card = ({ value, suit }) => {
+  if (!suit || !value) {
+    return null; // Prevent rendering if suit or value is undefined
+  }
+
   const suitSymbol = suitSymbols[suit] || suit; // Use the symbol, or fallback to the text if undefined
   const suitClass = `suit-${suit.toLowerCase()}`; // CSS class based on suit for coloring
 

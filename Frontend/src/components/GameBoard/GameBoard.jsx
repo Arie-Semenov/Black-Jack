@@ -1,6 +1,9 @@
+// GameBoard.jsx
 import './gameboard.css';
 import Card from '../Card/Card.jsx';
 import React, { useState, useEffect } from 'react';
+import DealerHand from '../DealerHand/DealerHand.jsx';
+import PlayerHand from '../PlayerHand/PlayerHand.jsx';
 
 const GameBoard = ({ balance, setBalance }) => {
     const [playerHand, setPlayerHand] = useState([]);
@@ -14,6 +17,7 @@ const GameBoard = ({ balance, setBalance }) => {
     const [gameOver, setGameOver] = useState(false);
     const [canSplit, setCanSplit] = useState(false);
     const [winnings, setWinnings] = useState(0);
+    const [hideSecondCard, setHideSecondCard] = useState(true);
 
     useEffect(() => {
         if (gameStarted) {
@@ -41,7 +45,7 @@ const GameBoard = ({ balance, setBalance }) => {
                 setMessage('');
                 setIsBusted(false);
                 setGameOver(false);
-                setGameStarted(false);
+                setHideSecondCard(true); // Hide the second card initially
                 setHasBet(true); // Ensure bet is set to true for new game
                 checkIfCanSplit();
             })
@@ -101,7 +105,9 @@ const GameBoard = ({ balance, setBalance }) => {
                         setMessage('You lose!');
                     }
                     setWinnings(wonAmount); // Set winnings for display
-                    setGameOver(true); // Set gameOver based on outcome
+                    setGameOver(true); 
+                    setGameStarted(false); // Stop the game
+                    setHideSecondCard(false); // Reveal the second card when game ends
                 }
             })
             .catch(error => console.error('Error handling stand:', error));
@@ -143,6 +149,8 @@ const GameBoard = ({ balance, setBalance }) => {
                         }
                         setWinnings(wonAmount); // Set winnings for display
                         setGameOver(true);
+                        setGameStarted(false); // Stop the game
+                        setHideSecondCard(false); // Reveal the second card when game ends
                     })
                     .catch(error => console.error('Error handling stand after double down:', error));
             })
@@ -212,11 +220,6 @@ const GameBoard = ({ balance, setBalance }) => {
         console.log("Game Over:", gameOver);
     }, [playerHand, dealerHand, isBusted, hasBet, gameStarted, gameOver]);
 
-    if (!Array.isArray(playerHand) || !Array.isArray(dealerHand)) {
-        console.error('playerHand or dealerHand is not an array:', playerHand, dealerHand);
-        return <div>Error: playerHand or dealerHand is not an array.</div>;
-    }
-
     const getGameStatus = () => {
         if (gameOver) {
             return 'Game Over';
@@ -232,46 +235,32 @@ const GameBoard = ({ balance, setBalance }) => {
 
     return (
         <div className="game-board">
-            <h1>{getGameStatus()}</h1>
+            <h1>Blackjack Game Board</h1>
+            <p>Balance: ${balance}</p>
 
-            <h2>Player Hand</h2>
-            <div className="hand">
-                {playerHand.map((card, index) => (
-                    <Card key={index} value={card.Value} suit={card.Suit} />
-                ))}
-            </div>
-            <div className="total">Total: {calculateHandValue(playerHand)}</div>
-
-            <h2>Dealer Hand</h2>
-            <div className="hand">
-                {dealerHand.map((card, index) => (
-                    <Card key={index} value={card.Value} suit={card.Suit} />
-                ))}
-            </div>
-            <div className="total">Total: {calculateHandValue(dealerHand)}</div>
-
-            <div className="controls">
-                <button onClick={handleHit} disabled={isBusted || !hasBet || gameOver}>Hit</button>
-                <button onClick={handleStand} disabled={isBusted || !hasBet || gameOver}>Stand</button>
-                <button onClick={handleDoubleDown} disabled={isBusted || !hasBet || gameOver}>Double Down</button>
-                {canSplit && <button onClick={handleSplit} disabled={isBusted || !hasBet || gameOver}>Split</button>}
+            <div className="dealer-section">
+                <h2>Dealer's Hand</h2>
+                <DealerHand hand={dealerHand} hideSecondCard={hideSecondCard} />
             </div>
 
-            <div className="message">{message}</div>
-
-            <div className="betting">
-                <input
-                    type="number"
-                    placeholder="Enter bet amount"
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(e.target.value)}
-                />
-                <button onClick={handlePlaceBetAndStartNewGame} disabled={hasBet && !gameOver}>Place Bet</button>
-                {bet > 0 && <div>Current Bet: ${bet}</div>}
-                <div className="winnings">
-                    {winnings > 0 && <div>You won: ${winnings}</div>}
-                </div>
+            <div className="player-section">
+                <h2>Your Hand</h2>
+                <PlayerHand hand={playerHand} />
             </div>
+
+            <div className="game-controls">
+                <button onClick={handleHit} disabled={isBusted}>Hit</button>
+                <button onClick={handleStand} disabled={isBusted}>Stand</button>
+                {canSplit && <button onClick={handleSplit}>Split</button>}
+                <button onClick={handleDoubleDown} disabled={balance < bet}>Double Down</button>
+            </div>
+            <div>
+                <input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} placeholder="Enter Bet Amount" />
+                <button onClick={handlePlaceBetAndStartNewGame}>Place Bet</button>
+            </div>
+            <p>{message}</p>
+            <p>Game Status: {getGameStatus()}</p>
+            <p>Winnings: ${winnings}</p>
         </div>
     );
 };
