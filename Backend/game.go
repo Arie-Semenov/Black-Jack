@@ -82,9 +82,25 @@ func (g *Game) PlayerStand() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	// Dealer draws cards based on simple blackjack rules
-	for g.calculateHandValue(g.Dealer.Hand) < 17 {
+	// Get player hand value
+	playerValue := g.calculateHandValue(g.Player.Hands[0])
+
+	// Dealer draws until they have more points than the player or bust
+	for {
+		dealerValue := g.calculateHandValue(g.Dealer.Hand)
+
+		// Dealer stands if value >= 17 and greater than player's hand
+		if dealerValue >= 17 && dealerValue >= playerValue {
+			break
+		}
+
+		// Dealer draws another card
 		g.Dealer.Hand = append(g.Dealer.Hand, g.drawCard())
+
+		// Check if dealer busts
+		if dealerValue > 21 {
+			break
+		}
 	}
 }
 
